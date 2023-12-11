@@ -1,0 +1,114 @@
+0001   0000             ; *****************************************
+0002   0000             ; ZX80 (4K ROM) Breakout - Autostart loader
+0003   0000             ; Dave Curran 2023-12-11
+0004   0000             ; *****************************************
+0005   0000             
+0006   0000             ; Autostart program header - https://problemkaputt.de/zxdocs.htm#zx80zx81cassettefilecontent
+0007   0000             
+0008   4000                     .ORG    $4000
+0009   4000 00 00 00 00         .FILL   $08, $00                ; 4000h  8 x 00h          ;System area: Zerofilled stuff
+0009   4004 00 00 00 00 
+0010   4008 2C 40               .WORD   $402C                   ; 4008h  402Ch            ;System area: Pointer to VARS
+0011   400A 3D 41               .WORD   $413D                   ; 400Ah  nn3Dh            ;System area: Pointer to End of file
+0012   400C 00 00 00 00         .FILL   $1C, $00                ; 400Ch  1Ch x 00h        ;System area: Zerofilled stuff
+0012   4010 00 00 00 00 
+0012   4014 00 00 00 00 
+0012   4018 00 00 00 00 
+0012   401C 00 00 00 00 
+0012   4020 00 00 00 00 
+0012   4024 00 00 00 00 
+0013   4028 00 01 65 76         .BYTE   $00, $01, $65, $76      ; 4028h  00h,01h,65h,76h  ;BASIC program: Line 0001, LD H,L opcode, NEWLINE
+0014   402C 80                  .BYTE   $80                     ; 402Ch  80h              ;VARS area: End code
+0015   402D             
+0016   402D             ; Setup the copy command in the padding before 4040
+0017   402D             SETUP:  
+0018   402D 01 EB 00            LD BC, $00EB                    ; Copy EB bytes
+0019   4030 21 43 40            LD HL, CODE                     ; From code
+0020   4033 11 00 40            LD DE, $4000                    ; To 4000
+0021   4036                     
+0022   4036 C3 2E 41            JP     COPY                     ; jump to copy routine after data (to avoid being overwritten)
+0023   4039             
+0024   4039             ; Autostart entry point
+0025   4040                     .ORG    $4040
+0026   4040 F3                  DI                              ; disable interrupts to stop drawing the screen until we are ready
+0027   4041 18 EA               JR      SETUP                   ; setup to copy the program
+0028   4043             
+0029   4043             ; Code for 1K Breakout game, assembled to run from $4000, same as the original type in listing   
+0030   4043             ; Original version from Macronics - http://www.fruitcake.plus.com/Sinclair/ZX80/FlickerFree/ZX80_Breakout.htm
+0031   4043             ; OUT $FF,A at $405B changed from original OUT $FE,A to work with ZX80 BASIC on the Minstrel 4D as well as on ZX80s.
+0032   4043             
+0033   4043             CODE:
+0034   4043             
+0035   4043 72 2B 72 2B 	.BYTE	$72, $2B, $72, $2B, $72, $23, $23, $23, $72, $23, $72, $2B, $2B, $C9, $11, $20	; $4000 - $400F
+0035   4047 72 23 23 23 
+0035   404B 72 23 72 2B 
+0035   404F 2B C9 11 20 
+0036   4053 00 21 00 41 	.BYTE	$00, $21, $00, $41, $3E, $80, $47, $77, $23, $10, $FC, $47, $36, $14, $23, $10	; $4010 - $401F
+0036   4057 3E 80 47 77 
+0036   405B 23 10 FC 47 
+0036   405F 36 14 23 10 
+0037   4063 FB 77 23 77 	.BYTE	$FB, $77, $23, $77, $23, $10, $FA, $21, $FF, $40, $06, $19, $36, $76, $19, $10	; $4020 - $402F
+0037   4067 23 10 FA 21 
+0037   406B FF 40 06 19 
+0037   406F 36 76 19 10 
+0038   4073 FB 25 2C 0E 	.BYTE	$FB, $25, $2C, $0E, $01, $FD, $21, $DB, $40, $FD, $36, $22, $E6, $31, $FA, $40	; $4030 - $403F
+0038   4077 01 FD 21 DB 
+0038   407B 40 FD 36 22 
+0038   407F E6 31 FA 40 
+0039   4083 D9 21 00 25 	.BYTE	$D9, $21, $00, $25, $E5, $FD, $36, $23, $38, $E1, $2C, $E5, $DB, $FE, $7D, $E6	; $4040 - $404F
+0039   4087 E5 FD 36 23 
+0039   408B 38 E1 2C E5 
+0039   408F DB FE 7D E6 
+0040   4093 03 28 51 FE 	.BYTE	$03, $28, $51, $FE, $02, $20, $1C, $06, $57, $10, $FE, $D3, $FF, $3E, $EC, $06	; $4050 - $405F
+0040   4097 02 20 1C 06 
+0040   409B 57 10 FE D3 
+0040   409F FF 3E EC 06 
+0041   40A3 19 21 FF C0 	.BYTE	$19, $21, $FF, $C0, $CD, $AD, $01, $3E, $F0, $04, $2B, $FD, $35, $23, $CD, $AD	; $4060 - $406F
+0041   40A7 CD AD 01 3E 
+0041   40AB F0 04 2B FD 
+0041   40AF 35 23 CD AD 
+0042   40B3 01 18 D2 FD 	.BYTE	$01, $18, $D2, $FD, $6E, $22, $26, $43, $16, $80, $CD, $00, $40, $06, $E7, $0E	; $4070 - $407F
+0042   40B7 6E 22 26 43 
+0042   40BB 16 80 CD 00 
+0042   40BF 40 06 E7 0E 
+0043   40C3 FE 7D ED 50 	.BYTE	$FE, $7D, $ED, $50, $CB, $52, $20, $05, $FE, $FC, $28, $01, $2C, $CB, $62, $20	; $4080 - $408F
+0043   40C7 CB 52 20 05 
+0043   40CB FE FC 28 01 
+0043   40CF 2C CB 62 20 
+0044   40D3 05 FE E2 28 	.BYTE	$05, $FE, $E2, $28, $01, $2D, $16, $03, $CD, $00, $40, $FD, $75, $22, $06, $3A	; $4090 - $409F
+0044   40D7 01 2D 16 03 
+0044   40DB CD 00 40 FD 
+0044   40DF 75 22 06 3A 
+0045   40E3 10 FE 18 B7 	.BYTE	$10, $FE, $18, $B7, $D9, $36, $80, $09, $19, $09, $7E, $A7, $ED, $42, $FE, $76	; $40A0 - $40AF
+0045   40E7 D9 36 80 09 
+0045   40EB 19 09 7E A7 
+0045   40EF ED 42 FE 76 
+0046   40F3 20 07 78 2F 	.BYTE	$20, $07, $78, $2F, $47, $79, $2F, $3C, $4F, $7E, $19, $FE, $14, $28, $19, $7E	; $40B0 - $40BF
+0046   40F7 47 79 2F 3C 
+0046   40FB 4F 7E 19 FE 
+0046   40FF 14 28 19 7E 
+0047   4103 FE 03 28 14 	.BYTE	$FE, $03, $28, $14, $7C, $FE, $40, $28, $0F, $A7, $ED, $52, $FE, $44, $20, $10	; $40C0 - $40CF
+0047   4107 7C FE 40 28 
+0047   410B 0F A7 ED 52 
+0047   410F FE 44 20 10 
+0048   4113 F1 3D F5 FE 	.BYTE	$F1, $3D, $F5, $FE, $1B, $CA, $0E, $40, $7A, $2F, $57, $7B, $2F, $3C, $5F, $19	; $40D0 - $40DF
+0048   4117 1B CA 0E 40 
+0048   411B 7A 2F 57 7B 
+0048   411F 2F 3C 5F 19 
+0049   4123 F1 F5 77 D9 	.BYTE	$F1, $F5, $77, $D9, $06, $45, $10, $FE, $C3, $5B, $40 	                        ; $40E0 - $40EA
+0049   4127 06 45 10 FE 
+0049   412B C3 5B 40 
+0050   412E             
+0051   412E             ; actual copy command located after code 
+0052   412E             COPY:
+0053   412E ED B0               LDIR                            ; Make it so
+0054   4130             
+0055   4130 C3 0E 40            JP $400E                        ; Jump to game entry point
+0056   4133             
+0057   4133             ; file padded to be $xx3D bytes long
+0058   4133             
+0059   413C                     .ORG    $413C
+0060   413C 80                  .BYTE   $80
+0061   413D             
+0062   413D                     .END
+tasm: Number of errors = 0
